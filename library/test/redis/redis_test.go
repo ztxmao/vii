@@ -2,7 +2,7 @@ package redis_test
 
 import (
 	"fmt"
-	l "library"
+	l "github.com/ztxmao/vii/library"
 	"testing"
 	//"time"
 

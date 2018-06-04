@@ -2,7 +2,7 @@ package ini_configer_test
 
 import (
 	"fmt"
-	"library"
+	"github.com/ztxmao/vii/library"
 	"testing"
 )
 

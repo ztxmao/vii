@@ -3,7 +3,7 @@ package mapsorter_test
 import (
 	//	"errors"
 	"fmt"
-	l "library"
+	l "github.com/ztxmao/vii/library"
 	"testing"
 )
 

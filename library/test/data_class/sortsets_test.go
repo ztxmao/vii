@@ -2,7 +2,7 @@ package data_class_test
 
 import (
 	"fmt"
-	dc "library/data_class/sortsets"
+	dc "github.com/ztxmao/vii/library/data_class/exsets"
 	"testing"
 )
 

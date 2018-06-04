@@ -2,7 +2,7 @@ package frame
 
 import (
 	"fmt"
-	"frame/router"
+	"github.com/ztxmao/vii/frame/router"
 	"net/http"
 	_ "net/http/pprof"
 	"reflect"

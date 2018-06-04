@@ -2,8 +2,8 @@ package data_class_test
 
 import (
 	"fmt"
-	"library"
-	dc "library/data_class/exsets"
+	"github.com/ztxmao/vii/library"
+	dc "github.com/ztxmao/vii/library/data_class/exsets"
 	"testing"
 	"time"
 )

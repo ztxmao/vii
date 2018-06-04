@@ -2,7 +2,7 @@ package loger_test
 
 import (
 	"fmt"
-	"library"
+	"github.com/ztxmao/vii/library"
 	"testing"
 )
 
