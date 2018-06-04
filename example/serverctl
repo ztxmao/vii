@@ -1,0 +1,207 @@
+#!/bin/bash
+
+action=$1
+rw=`dirname $0` 
+cd $rw 
+ROOT_DIR=`pwd`
+export CGO_LDFLAGS="-L$ROOT_DIR/lib/"
+export LD_LIBRARY_PATH="$ROOT_DIR/lib/"
+APP="{@project}"
+CONF="server.conf"
+#大概N秒才能加载完字典
+SLEEP_FOR_RUN=3
+
+REGION=`hostname | awk -F. '{ print $3 }'`
+if [ "$REGION" = "corp" ]
+then
+    PID_FILE=$(cat $ROOT_DIR/conf/server.conf | perl -ne 'print "$1" if m/^pidfile\s*=\s*(\S+)/')
+else
+    PID_FILE=$(cat $ROOT_DIR/conf/server.conf | perl -ne 'print "$1" if m/^pidfile\s*=\s*(\S+)/')
+fi
+wait_for_pid () {
+	try=0
+	#先sleep1秒, 防止启动后马上又出错退出的情况
+	sleep 2
+	while test $try -lt 10 ; do
+
+		case "$1" in
+				'created')
+				if [ -f "$2" ] ; then
+						return 0
+				fi
+				;;
+
+				'removed')
+				if [ ! -f "$2" ] ; then
+					  return 0
+				fi
+				;;
+		esac
+
+		echo -n .
+		try=`expr $try + 1`
+		sleep 2
+
+	done
+	return 1
+}
+
+#400MB 开始垃圾回收
+export GOGC=1000
+echo "To do action:$action..."
+case "$action" in
+        start)
+               echo "In start func...."
+               rm -rf $PID_FILE
+               if [ -s $PID_FILE ]
+               then
+                     #强制启动，会忽略pid文件的存在， 适合程序异常退出后的重启，或者机器重启的场景
+                     if [ "$2" = "-f" ]
+                     then
+                        echo "ignore existed pid file"
+                        rm -rf $PID_FILE
+                     else
+                        echo "pid file already exist"
+                        exit 1
+                     fi
+               fi
+               nohup $ROOT_DIR/bin/$APP 1>>$ROOT_DIR/logs/run.log 2>>$ROOT_DIR/logs/run.log &
+               wait_for_pid created $PID_FILE
+               if [ 0 != $? ] 
+               then
+                        echo "failed, please refer to logs/run.log for more detail"
+                        exit 1
+               else
+                        echo "done"
+               fi
+        ;;
+        
+        stop)
+                echo "In stop func...."
+                kill -9 `cat $PID_FILE`
+                if [ 0 != $? ]
+                then
+                    echo "failed"
+                    exit 1
+                else
+                    rm -rf $PID_FILE
+                    echo "done"
+                fi
+        ;;
+
+		kill)
+                echo "In kill func..."
+				pid=$(ps axu | grep "$APP" | grep -v grep | awk '{print $2}')
+				if [[ -z $pid ]]
+				then
+					echo "fail, service is not started"
+					exit
+				fi
+				kill -9 $pid
+                if [ 0 != $? ]
+                then
+                    echo "failed"
+                    exit 1
+                else
+                    echo "done"
+                fi
+
+		;;
+
+        restart)
+                echo "In restart func..."
+                sh $0 stop
+                if [ 0 != $? ]
+                then
+                    sh $0 kill
+                fi
+                echo "To start session in $SLEEP_FOR_RUN seconds later..."
+                sleep $SLEEP_FOR_RUN
+                sh $0 start
+                if [ $? != 0 ]
+                then
+                    echo "failed"
+                    exit 1
+                fi     
+        ;;
+
+        reload)
+                echo "In reload func..."
+                #todo热启动
+                pid=`cat $PID_FILE`
+                if [ "x$pid" == "x" ]
+                then
+                    echo "pid file is emtpy"
+                    sh $0 restart
+                else
+                    echo "To reload session in $SLEEP_FOR_RUN seconds later..."
+                    kill -SIGUSR2 `cat $PID_FILE`
+                    sleep $SLEEP_FOR_RUN
+                    wait_for_pid created $PID_FILE
+                    if [ 0 != $? ] 
+                    then
+                        echo "failed, please refer to logs/run.log for more detail"
+                        exit 1
+                    else
+                        echo "done"
+                    fi
+                fi
+        ;;
+
+        envinit)
+                chmod -R 0777 $ROOT_DIR
+                chmod 0777 $ROOT_DIR/bin
+                #if test $# -lt 2
+                #then
+                #    echo Usage: $0 envinit idc
+                #    echo    eg: $0 envinit zwt
+                #    exit 1
+                #fi
+                REGION=`hostname | awk -F. '{ print $3 }'`
+                DIRS="logs data"
+                EXECUTES=""
+             
+                cd $ROOT_DIR/conf
+                if test -e $CONF
+                then 
+                    rm -rf $CONF
+                fi
+                if (test -s $CONF.$REGION)
+                then
+                    ln -s $CONF.$REGION $CONF
+                    echo link -s $CONF.$REGION ........... OK
+                else 
+                    echo link -s $CONF.$REGION  ........... Fail
+                fi
+                
+                cd $ROOT_DIR
+                for dir in $DIRS
+                do
+                    if (test ! -d $dir)
+                    then
+                        mkdir -p $dir
+                    fi
+                    chmod 0777 $dir
+                    echo mkdir $dir ................ OK
+                done
+                for execute in $EXECUTES
+                do
+                    sh $execute > /dev/null
+                    if test $? -eq 0
+                    then
+                        echo sh $execute ................ OK
+                    fi
+                done   
+        ;;
+
+        *)
+                echo "Usage:/bin/bash $0 {start [-f]|restart|reload|stop|kill|envinit}"
+				echo "示意:: start:启动 |start -f:强制启动 | restart:重启 |reload:热重启 |stop:关闭 |kill:杀死进程 |envinit:初始化环境"
+                exit 1
+                
+        ;;
+esac
+
+exit 0
+
+

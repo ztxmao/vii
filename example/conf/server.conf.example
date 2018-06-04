@@ -1,0 +1,16 @@
+[log]
+path = /data/logs/
+name = {@project}
+level = 0
+#日志level, 0:debug 1:access 2:warning 3:error
+
+[server]
+numcpu  = 4
+port    = 9384
+#读写超时时间 ms
+r_time = 400
+w_time = 600
+pprof_addr = 127.0.0.1:9370
+pidfile = /tmp/{@project}.pid
+
+#end
