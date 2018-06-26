@@ -7,17 +7,11 @@ ROOT_DIR=`pwd`
 export CGO_LDFLAGS="-L$ROOT_DIR/lib/"
 export LD_LIBRARY_PATH="$ROOT_DIR/lib/"
 APP="{@project}"
-CONF="server.conf"
 #大概N秒才能加载完字典
 SLEEP_FOR_RUN=3
-
-REGION=`hostname | awk -F. '{ print $3 }'`
-if [ "$REGION" = "corp" ]
-then
-    PID_FILE=$(cat $ROOT_DIR/conf/server.conf | perl -ne 'print "$1" if m/^pidfile\s*=\s*(\S+)/')
-else
-    PID_FILE=$(cat $ROOT_DIR/conf/server.conf | perl -ne 'print "$1" if m/^pidfile\s*=\s*(\S+)/')
-fi
+PID_FILE=$(cat $ROOT_DIR/conf/server.ini | perl -ne 'print "$1" if m/^pidfile\s*=\s*(\S+)/')
+#TODO 跟机器环境自己编写ENV 判断
+ENV="dev"
 wait_for_pid () {
 	try=0
 	#先sleep1秒, 防止启动后马上又出错退出的情况
@@ -65,7 +59,8 @@ case "$action" in
                         exit 1
                      fi
                fi
-               nohup $ROOT_DIR/bin/$APP 1>>$ROOT_DIR/logs/run.log 2>>$ROOT_DIR/logs/run.log &
+               echo "$ROOT_DIR/bin/$APP -f $ROOT_DIR/conf/server.ini -env $ENV"
+               nohup $ROOT_DIR/bin/$APP -f $ROOT_DIR/conf/server.ini -env $ENV 1>>$ROOT_DIR/logs/run.log 2>>$ROOT_DIR/logs/run.log &
                wait_for_pid created $PID_FILE
                if [ 0 != $? ] 
                then

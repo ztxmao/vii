@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	Configer    = library.Configer
+	Configer    = library.ConfigerExt
 	Logger      = library.Logger
 	Hostname, _ = os.Hostname()
 )

@@ -1,0 +1,73 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "rRYbBQkVsd/+EIryahsywNi34Lo=",
+			"path": "github.com/emirpasic/gods/containers",
+			"revision": "ec46b0116df083cba218abbf72522c6d0c065e4e",
+			"revisionTime": "2016-09-17T20:12:36Z"
+		},
+		{
+			"checksumSHA1": "ZPTDtUhR0dyogtlRYPsLcRRojEo=",
+			"path": "github.com/emirpasic/gods/lists",
+			"revision": "ec46b0116df083cba218abbf72522c6d0c065e4e",
+			"revisionTime": "2016-09-17T20:12:36Z"
+		},
+		{
+			"checksumSHA1": "vLUO66BzlHwN8hxfx2a84EZOtTk=",
+			"path": "github.com/emirpasic/gods/lists/arraylist",
+			"revision": "ec46b0116df083cba218abbf72522c6d0c065e4e",
+			"revisionTime": "2016-09-17T20:12:36Z"
+		},
+		{
+			"checksumSHA1": "0rI8tJkD4fdH1JS/kHdjaVBDkm8=",
+			"path": "github.com/emirpasic/gods/lists/doublylinkedlist",
+			"revision": "ec46b0116df083cba218abbf72522c6d0c065e4e",
+			"revisionTime": "2016-09-17T20:12:36Z"
+		},
+		{
+			"checksumSHA1": "XCPN+L39nz8L5qBMskCg0D3vK0s=",
+			"path": "github.com/emirpasic/gods/maps",
+			"revision": "ec46b0116df083cba218abbf72522c6d0c065e4e",
+			"revisionTime": "2016-09-17T20:12:36Z"
+		},
+		{
+			"checksumSHA1": "v5Bf5fBMq460RMnUb1K7rVGPK2w=",
+			"path": "github.com/emirpasic/gods/maps/hashmap",
+			"revision": "ec46b0116df083cba218abbf72522c6d0c065e4e",
+			"revisionTime": "2016-09-17T20:12:36Z"
+		},
+		{
+			"checksumSHA1": "cWg297Ki5spCXeJ5qDHMHFHUwrw=",
+			"path": "github.com/emirpasic/gods/utils",
+			"revision": "ec46b0116df083cba218abbf72522c6d0c065e4e",
+			"revisionTime": "2016-09-17T20:12:36Z"
+		},
+		{
+			"checksumSHA1": "2UmMbNHc8FBr98mJFN1k8ISOIHk=",
+			"path": "github.com/garyburd/redigo/internal",
+			"revision": "80f7de34463b0ed3d7c61303e5619efe1b227f92",
+			"revisionTime": "2016-10-24T01:47:02Z"
+		},
+		{
+			"checksumSHA1": "qqi0xwKRUSRkYMFZcqWSS/4YAjA=",
+			"path": "github.com/garyburd/redigo/redis",
+			"revision": "80f7de34463b0ed3d7c61303e5619efe1b227f92",
+			"revisionTime": "2016-10-24T01:47:02Z"
+		},
+		{
+			"checksumSHA1": "++NbuL6/cpFR712EXGnWusURqC0=",
+			"path": "github.com/go-sql-driver/mysql",
+			"revision": "2a6c6079c7eff49a7e9d641e109d922f124a3e4c",
+			"revisionTime": "2016-10-26T16:05:54Z"
+		},
+		{
+			"checksumSHA1": "xdIAYvv5NTJzgR/Wh9aVduoEM6s=",
+			"path": "github.com/tabalt/gracehttp",
+			"revision": "c6579a30be2b9c9e1c31a4d32a471f28dd71dca0",
+			"revisionTime": "2018-03-27T01:49:28Z"
+		}
+	],
+	"rootPath": "github.com/ztxmao/vii"
+}

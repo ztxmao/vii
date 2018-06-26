@@ -7,13 +7,16 @@ import (
 )
 
 var (
-	configFile = "app.conf"
-	c          = library.Configer
-	p          = fmt.Println
+	configFile    = "app.conf"
+	configIniFile = "app.ini"
+	c             = library.Configer
+	ce            = library.ConfigerExt
+	p             = fmt.Println
 )
 
 func init() {
 	c.Init(configFile)
+	ce.Init(configIniFile, "dev")
 }
 
 func TestConfiger(t *testing.T) {
@@ -21,7 +24,13 @@ func TestConfiger(t *testing.T) {
 	t2 := c.GetInt("database", "port")
 	t3, _ := c.GetSection("database")
 	t4 := c.GetBool("database", "debug")
-	if t1 != "root" || t2 != 3306 || t3 == nil || t4 != true {
-		t.Errorf("configer get data err! t1=%v t2=%v t3=%v t4=%v", t1, t2, t3, t4)
-	}
+	p(t1, t2, t3, t4)
+}
+
+func TestConfigerExt(t *testing.T) {
+	t1 := ce.GetStr("user", "identityCookie.domain")
+	t2 := ce.GetInt("user", "authTimeout")
+	t3, _ := ce.GetSection("picasso")
+	t4 := ce.GetBool("log", "debug")
+	p(t1, t2, t3, t4)
 }

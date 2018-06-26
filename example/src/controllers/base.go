@@ -30,7 +30,6 @@ func (this *BaseController) Init(rw http.ResponseWriter, r *http.Request, contro
 }
 
 func (this *BaseController) BeforeAction() bool {
-	common.Logger.Debug(this.r.URL)
 	return true
 }
 
@@ -103,7 +102,6 @@ func (this *BaseController) GetBool(key string, defaultValue bool) bool {
 
 //api统一json输出
 func (this *BaseController) Output(data interface{}) {
-	common.Logger.Debug(data)
 	this.toJson(map[string]interface{}{
 		"errno":  0,
 		"error":  "ok",
@@ -113,13 +111,11 @@ func (this *BaseController) Output(data interface{}) {
 
 //字符串输出
 func (this *BaseController) OutputString(data string) {
-	common.Logger.Debug(data)
 	this.writeToWriter([]byte(data))
 }
 
 //原始json格式输出
 func (this *BaseController) OutputNoFmt(data interface{}) {
-	common.Logger.Debug(data)
 	this.toJson(data)
 }
 
@@ -161,6 +157,7 @@ func (this *BaseController) writeToWriter(rb []byte) {
 	if this.OutputDirect {
 		this.rw.Write(rb)
 	}
+	common.Logger.Access(this.genLog(), len(rb))
 }
 
 func (this *BaseController) httpErr(code int, info string) {

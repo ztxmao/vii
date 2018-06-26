@@ -37,12 +37,17 @@ func main() {
 //所有初始化操作
 func envInit() {
 	os.Chdir(path.Dir(os.Args[0]))
-	confiPath := flag.String("f", "../conf/server.conf", "config file")
+	defaultConfPath := os.Getenv("GOPATH") + "/src/{@project}/conf/server.ini"
+	confiPath := flag.String("f", defaultConfPath, "config file")
+	env := flag.String("env", "", "环境参数")
+	if *env == "" {
+		*env = os.Getenv("GO_PROJECT_ENV")
+	}
 	flag.Parse()
 	if *confiPath == "" {
 		panic("config file missing")
 	}
-	common.Configer.Init(*confiPath)
+	common.Configer.Init(*confiPath, *env)
 	logPath := common.Configer.GetStr("log", "path")
 	logName := common.Configer.GetStr("log", "name")
 	logLevel := common.Configer.GetInt("log", "level")

@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -124,6 +125,17 @@ func (c *Config) GetSection(section string) (map[string]string, bool) {
 	return sec, ok
 }
 
+func (c *Config) GetDuration(section, name string) time.Duration {
+	str := c.GetStr(section, name)
+	if str == "" {
+		return 0
+	}
+	result, err := time.ParseDuration(str)
+	if err != nil {
+		return 0
+	}
+	return result
+}
 func (c *Config) checkErr(err error) {
 	if err != nil {
 		panic("Error is :" + err.Error())
