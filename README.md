@@ -15,7 +15,7 @@
 go get github.com/ztxmao/vii
 vii -p yourproject
 cd $GOPATH/src/yourproject/conf
-ln -s server.conf.example server.conf //软连默认配置文件
+cp server.ini.example server.ini //软连默认配置文件
 cd ..
 ./deploy/bulid-app.sh  //生成可执行文件到 项目bin目录
 ./serverctl start //启动服务
