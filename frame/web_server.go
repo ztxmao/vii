@@ -6,6 +6,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"reflect"
+	"runtime"
 	"time"
 
 	"github.com/tabalt/gracehttp"
@@ -17,6 +18,7 @@ type HttpApiServer struct {
 	HttpPort     int
 	ReadeTimeout int
 	WriteTimeout int
+	IdleTimeout  int
 	hanlder      *httpApiHandler
 	pprofAddr    string
 }
@@ -24,17 +26,20 @@ type HttpApiServer struct {
 type httpApiHandler struct {
 	routMap     map[string]map[string]reflect.Type //key:controller: {key:method value:reflect.type}
 	routersPool map[string]router.Router
+	timeout     time.Duration
 }
 
 //new server
-func NewHttpServer(addr string, port, readTimout, witeTimeout int, pprofAddr string) *HttpApiServer {
+func NewHttpServer(addr string, port, readTimout, witeTimeout, idleTimeout, execTimout int, pprofAddr string) *HttpApiServer {
+	handleTimeout := time.Duration(execTimout) * time.Millisecond
 	ret := &HttpApiServer{
 		HttpAddr:     addr,
 		HttpPort:     port,
 		ReadeTimeout: readTimout,
 		WriteTimeout: witeTimeout,
+		IdleTimeout:  idleTimeout,
 		pprofAddr:    pprofAddr,
-		hanlder:      &httpApiHandler{routMap: make(map[string]map[string]reflect.Type), routersPool: make(map[string]router.Router)},
+		hanlder:      &httpApiHandler{routMap: make(map[string]map[string]reflect.Type), routersPool: make(map[string]router.Router), timeout: handleTimeout},
 	}
 	return ret
 }
@@ -53,24 +58,31 @@ func (this *HttpApiServer) Run() {
 	addr := fmt.Sprintf("%s:%d", this.HttpAddr, this.HttpPort)
 	readTimeout := time.Duration(this.ReadeTimeout) * time.Millisecond
 	writeTimeout := time.Duration(this.WriteTimeout) * time.Millisecond
+	idleTimeout := time.Duration(this.IdleTimeout) * time.Second
 	if this.pprofAddr != "" {
 
 		fmt.Println("HttpApiServer PProf Listen: ", this.pprofAddr)
 		go http.ListenAndServe(this.pprofAddr, nil)
 	}
 	fmt.Println("HttpApiServer Listen: ", addr)
-	if err := gracehttp.NewServer(addr, this.hanlder, readTimeout, writeTimeout).ListenAndServe(); err != nil {
+	if err := gracehttp.NewServer(addr, this.hanlder, readTimeout, writeTimeout, idleTimeout).ListenAndServe(); err != nil {
 		panic(err)
 	}
 }
-
+func stack() string {
+	var buf [2 << 10]byte
+	return string(buf[:runtime.Stack(buf[:], true)])
+}
 func (this *httpApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Println("ServeHTTP: ", err)
+			//			fmt.Println(stack())
 			http.Error(rw, fmt.Sprintln(err), http.StatusInternalServerError)
 		}
 	}()
+	after := time.After(this.timeout)
+	done := make(chan int, 1)
 	rw.Header().Set("Server", "GoServer")
 	r.ParseForm()
 	var contollerType reflect.Type
@@ -96,11 +108,12 @@ func (this *httpApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			method.Call(in)
 		}
 	}()
-	in = make([]reflect.Value, 4)
+	in = make([]reflect.Value, 5)
 	in[0] = reflect.ValueOf(rw)
 	in[1] = reflect.ValueOf(r)
 	in[2] = reflect.ValueOf(cname)
 	in[3] = reflect.ValueOf(mname)
+	in[4] = reflect.ValueOf(done)
 	method = vc.MethodByName("Init")
 	method.Call(in)
 	in = make([]reflect.Value, 0)
@@ -110,5 +123,14 @@ func (this *httpApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	method = vc.MethodByName(mname)
-	method.Call(in)
+	go method.Call(in)
+	select {
+	case <-done:
+		close(done)
+		break
+	case <-after:
+		fmt.Println(time.Now(), "ServeHTTP: timeout")
+		http.Error(rw, "timeout", http.StatusBadGateway)
+		return
+	}
 }

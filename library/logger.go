@@ -48,7 +48,7 @@ func (this *FileLogger) Init(rootPath, logName string, logLevel int) {
 func (this *FileLogger) getLogger(logName string) (*log.Logger, error) {
 	nowDate := time.Now().Format("20060102")
 	//当前的日志文件名
-	filePath := this.rootPath + "/" + logName + ".log." + nowDate
+	filePath := this.rootPath + "/" + logName + "." + nowDate + ".log"
 	fd, ok := this.fdMap[logName]
 	//如果日志文件没有打开，或者日志名已经变了，就重新打开另外的日志文件
 	if !ok || (fd != nil && fd.Name() != filePath) {

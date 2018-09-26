@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ import (
 type ConfigExt struct {
 	filepath string //your ini file path directory+file
 	env      string
+	path     string
 	conflist map[string]map[string]map[string]string //configuration information slice
 }
 
@@ -25,10 +27,15 @@ func (c *ConfigExt) Init(filepath, env string) {
 	}
 	c.filepath = filepath
 	c.env = env
+	c.path = path.Dir(filepath)
 	c.ReadList()
 	if _, ok := c.conflist[env]; !ok {
 		panic(errors.New("env node [" + env + "] not exist"))
 	}
+}
+
+func (c *ConfigExt) GetEnv() string {
+	return c.env
 }
 
 //Get string value of the key values
@@ -36,6 +43,18 @@ func (c *ConfigExt) GetStr(section, name string) string {
 	sec, ok := c.conflist[c.env][section][name]
 	if ok {
 		return sec
+	}
+	return ""
+}
+
+func (c *ConfigExt) GetPath(section, name string) string {
+	sec, ok := c.conflist[c.env][section][name]
+	if ok {
+		//局对路径、先对路径
+		if sec[0] == '/' {
+			return sec
+		}
+		return c.path + "/" + sec
 	}
 	return ""
 }
@@ -56,6 +75,7 @@ func (c *ConfigExt) GetInt(section, name string) int {
 //Get int value of the key values
 func (c *ConfigExt) GetInt64(section, name string) int64 {
 	str := c.GetStr(section, name)
+
 	if str == "" {
 		return 0
 	}
@@ -68,11 +88,13 @@ func (c *ConfigExt) GetInt64(section, name string) int64 {
 
 //List all the configuration file
 func (c *ConfigExt) ReadList() map[string]map[string]map[string]string {
+
 	file, err := os.Open(c.filepath)
 	if err != nil {
 		c.checkErr(err)
 	}
 	defer file.Close()
+
 	var block, blockKey, section string
 	c.conflist = make(map[string]map[string]map[string]string)
 	buf := bufio.NewReader(file)
@@ -84,10 +106,12 @@ func (c *ConfigExt) ReadList() map[string]map[string]map[string]string {
 			}
 			break
 		}
+
 		line := strings.TrimSpace(l)
 		if len(line) == 0 {
 			continue
 		}
+
 		switch {
 		case len(line) == 0:
 		case line[0] == '{' && line[len(line)-1] == '}':
@@ -116,12 +140,15 @@ func (c *ConfigExt) ReadList() map[string]map[string]map[string]string {
 			}
 		case line[0] == '#':
 		case line[0] == ';':
+
 		default:
 			i := strings.IndexAny(line, "=")
 			value := strings.TrimSpace(line[i+1 : len(line)])
 			c.conflist[block][section][strings.TrimSpace(line[0:i])] = value
 		}
+
 	}
+
 	return c.conflist
 }
 
@@ -143,6 +170,7 @@ func (c *ConfigExt) GetSection(section string) (map[string]string, bool) {
 	sec, ok := c.conflist[c.env][section]
 	return sec, ok
 }
+
 func (c *ConfigExt) GetDuration(section, name string) time.Duration {
 	str := c.GetStr(section, name)
 	if str == "" {
